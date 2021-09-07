@@ -35,7 +35,7 @@
   <MinProximityIntersection name="Proximity" alarmDistance="0.0015" contactDistance="0.001" />
   <DefaultContactManager name="Response" response="default" />
   
-
+<!-- ///////////////////////   BEAM AS A TRUNK OF QUADRUPED ROBOT   /////////////////////////////////// -->
   <Node name="Beam">
       <EulerImplicitSolver rayleighStiffness="0" printLog="false" rayleighMass="0.1" />
       <BTDLinearSolver template="BTDMatrix6d" printLog="false" verbose="false" />
@@ -61,29 +61,30 @@
        <BeamLinearMapping isMechanical="true"/>
      </Node>
       
-     <Node name="ConstraintPoint_beam">		<!-- This constraint creates a point to joint the Hip mass -->
-         <MechanicalObject name="points_beam" template="Vec3d" position="0 0 0" />
+     <Node name="ConstraintPoint_Beam_HipMass">		<!-- This constraint creates a point to joint the Hip mass -->
+         <MechanicalObject name="point_beam" template="Vec3d" position="0 0 0" />
          <RigidMapping index="10"/>
      </Node>
   </Node>  
+  <!-- ///////////////////////   HIP MASS   /////////////////////////////////// -->
   
   <Node name="Mass_Hip">  
   
     <EulerImplicitSolver rayleighStiffness="0" printLog="false"  rayleighMass="0.1" />
-    <CGLinearSolver iterations="5" tolerance="1e-30" threshold="1e-30"/> <!-- <SparseLUSolver printLog="0" verbose="0"/> -->
+    <CGLinearSolver iterations="5" tolerance="1e-15" threshold="1e-15"/> <!-- <SparseLUSolver printLog="0" verbose="0"/> -->
     <!--<MinResLinearSolver iterations="1000" tolerance="1e-9" printLog="1" verbose="0"/>-->
     <MechanicalObject template="Rigid3d" name="Hip_Mass"  position="0.7329 0 0 0.707107 0 -0.707107 0"/>
     <UniformMass name="MassSolid1" totalMass="0.58" />
     <UncoupledConstraintCorrection />
    
     <Node name="ConstraintPoint_Hip_Mass">  <!-- This constraint creates a point to joint the trunk -->
-         <MechanicalObject name="points_Hip_1" template="Vec3d" position="0 0 0" />
+         <MechanicalObject name="point_Hip" template="Vec3d" position="0 0 0" />
          <RigidMapping index="0"/>
     </Node>
 
   </Node>
 
-  <BilateralInteractionConstraint template="Vec3d" object1="@Beam/ConstraintPoint_beam/points_beam" object2="@Mass_Hip/ConstraintPoint_Hip_Mass/points_Hip_1" first_point="0" second_point="0" /> 
+  <BilateralInteractionConstraint template="Vec3d" object1="@Beam/ConstraintPoint_Beam_HipMass/point_beam" object2="@Mass_Hip/ConstraintPoint_Hip_Mass/point_Hip" first_point="0" second_point="0" /> 
   
   <!-- ///////////////////////   FEMUR   /////////////////////////////////// -->
   <Node name="Femur" gravity="0 0 -9.81">
@@ -103,13 +104,13 @@
 		<RigidRigidMapping name="angle-coord mapping" input="@.." output="@DOFs2" index="0" />
 <!--		<ConstantForceField indices="0" forces="0 0 0 0 -1.1 0" showArrowSize="0.5" printLog="true"/>		-->
 		
-		<Node name="ConstraintPoint_Hip_Femur">
-            		<MechanicalObject name="points_Hip" template="Vec3d" position="0 0 0" />
+		<Node name="ConstraintPoint_Femur_HipMass">	<!-- This constraint creates a point to joint the Hip Mass -->
+            		<MechanicalObject name="point_Hip" template="Vec3d" position="0 0 0" />
             		<RigidMapping index="0"/>
         	</Node>
         
-        	<Node name="ConstraintPoint_Femur_Knee">
-            		<MechanicalObject name="points_Hip" template="Vec3d" position="0 0 0" />
+        	<Node name="ConstraintPoint_Femur_KneeMass">	<!-- This constraint creates a point to joint the Knee Mass -->
+            		<MechanicalObject name="point_Hip" template="Vec3d" position="0 0 0" />
             		<RigidMapping index="1"/>
         	</Node>
        </Node>
@@ -121,8 +122,9 @@
         </Node>
   </Node>   
   
-  <BilateralInteractionConstraint template="Vec3d" object1="@Mass_Hip/ConstraintPoint_Hip_Mass/points_Hip_1" object2="@Femur/Femur_Nodes/ConstraintPoint_Hip_Femur/points_Hip" first_point="0" second_point="0" />
+  <BilateralInteractionConstraint template="Vec3d" object1="@Mass_Hip/ConstraintPoint_Hip_Mass/point_Hip" object2="@Femur/Femur_Nodes/ConstraintPoint_Femur_HipMass/point_Hip" first_point="0" second_point="0" />
  
+   <!-- ///////////////////////   KNEE MASS   /////////////////////////////////// -->
    <Node name="Mass_Knee">  
   
     <EulerImplicitSolver rayleighStiffness="0" printLog="false"  rayleighMass="0.1" />
@@ -139,7 +141,7 @@
 
   </Node>    
       
-  <BilateralInteractionConstraint template="Vec3d" object1="@Femur/Femur_Nodes/ConstraintPoint_Femur_Knee/points_Hip" object2="@Mass_Knee/ConstraintPoint_Knee_Mass/points_Knee_Mass" first_point="0" second_point="0" />     
+  <BilateralInteractionConstraint template="Vec3d" object1="@Femur/Femur_Nodes/ConstraintPoint_Femur_KneeMass/point_Hip" object2="@Mass_Knee/ConstraintPoint_Knee_Mass/points_Knee_Mass" first_point="0" second_point="0" />     
     
     <!-- ///////////////////////   TIBIA   /////////////////////////////////// -->
     <Node name="Tibia" gravity="0 0 -9.81">
@@ -159,17 +161,17 @@
 		<RigidRigidMapping name="angle-coord mapping" input="@.." output="@DOFs2" index="0" />
 <!--		<ConstantForceField indices="0" forces="0 0 0 0 -1.1 0" showArrowSize="0.5" printLog="true"/>	-->
 		
-		<Node name="ConstraintPoint_Tibia_Femur">
+		<Node name="ConstraintPoint_Tibia_KneeMass">		<!-- This constraint creates a point to joint the Knee Mass -->
             		<MechanicalObject name="points_Knee_1" template="Vec3d" position="0 0 0" />
             		<RigidMapping index="0"/>
         	</Node>
         
-        	<Node name="ConstraintPoint_Tibia_Foot">
+        	<Node name="ConstraintPoint_Tibia_Foot">		<!-- This constraint creates a point to joint the Foot -->
             		<MechanicalObject name="points_Knee_2" template="Vec3d" position="0 0 0" />
             		<RigidMapping index="1"/>
         	</Node>
         	
-        	<Node name="Collision_Foot">
+        	<Node name="Collision_Foot">				<!-- This constraint a collition point in the Foot -->
         		<MechanicalObject name="points_Foot_Collition" template="Vec3d" position="0 0 0" />        		
         		<RigidMapping index="1"/>
         		<MeshTopology name="lines_Beam" hexas="0"/>
@@ -186,7 +188,7 @@
      
   </Node>   
   
-   <BilateralInteractionConstraint template="Vec3d" object1="@Mass_Knee/ConstraintPoint_Knee_Mass/points_Knee_Mass" object2="@Tibia/Tibia_Nodes/ConstraintPoint_Tibia_Femur/points_Knee_1" first_point="0" second_point="0" />   
+   <BilateralInteractionConstraint template="Vec3d" object1="@Mass_Knee/ConstraintPoint_Knee_Mass/points_Knee_Mass" object2="@Tibia/Tibia_Nodes/ConstraintPoint_Tibia_KneeMass/points_Knee_1" first_point="0" second_point="0" />   
        
     <Node name="Floor">
 	<MeshTopology name="Topology Floor" filename="mesh/floor.obj" />
