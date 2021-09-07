@@ -1,0 +1,321 @@
+<!-- BeamFEMForceField Example_1_Beam -->
+<!-- The units of the .scn are meters for length and kg for masses -->
+
+<Node name="root" gravity="0 0 -9.81" dt="0.001">
+
+  <RequiredPlugin pluginName="SofaOpenglVisual"/>
+  <RequiredPlugin pluginName='SofaMiscMapping'/> 
+  <RequiredPlugin pluginName='SofaMiscCollision'/>
+  <RequiredPlugin pluginName='SofaGeneralLinearSolver'/>
+  <RequiredPlugin pluginName='SofaGeneralTopology'/>
+  <RequiredPlugin pluginName='SofaImplicitOdeSolver'/>
+  <RequiredPlugin pluginName='SofaGeneralSimpleFem'/>
+  <RequiredPlugin pluginName='SofaBoundaryCondition'/>
+  <RequiredPlugin pluginName='SofaDenseSolver'/>
+  <RequiredPlugin pluginName='SofaMeshCollision'/>
+  <RequiredPlugin pluginName='SofaRigid'/>
+  <RequiredPlugin pluginName='SofaConstraint'/>
+  <RequiredPlugin pluginName='SofaLoader'/>
+  <RequiredPlugin name="SofaDeformable"/>
+  
+  
+  <VisualStyle displayFlags="showForceFields showCollisionModels showVisualMappings showWireframe " />
+
+  <OglGrid size="1" name="grid"/>
+  <OglLineAxis size="@grid.size"/>
+  <OglSceneFrame/>
+  
+  <FreeMotionAnimationLoop />
+  <GenericConstraintSolver tolerance="0.001" maxIterations="1000"/>		<!-- <LCPConstraintSolver tolerance="0.001" maxIt="1000"/> -->
+  
+  <DefaultPipeline depth="6" verbose="0" draw="0" />
+  <BruteForceBroadPhase/>
+  <BVHNarrowPhase/>
+  
+  <MinProximityIntersection name="Proximity" alarmDistance="0.0015" contactDistance="0.001" />
+  <DefaultContactManager name="Response" response="FrictionContact" /> <!-- response="default" -->
+  
+  <Node name="SliderConstraints">
+	<MechanicalObject name="Line1" template="Vec3d" position="-10 0.1 0.1  1 0.1 0.1" free_position="-1 0.1 0.1  1 0.1 0.1" />		<!-- I -->
+	<MechanicalObject name="Line2" template="Vec3d" position="-10 -0.1 0.1  1 -0.1 0.1" free_position="-1 -0.1 0.1  1 -0.1 0.1" />	<!-- II -->
+	<MechanicalObject name="Line3" template="Vec3d" position="-10 -0.1 -0.1  1 -0.1 -0.1" free_position="-1 -0.1 -0.1  1 -0.1 -0.1" />	<!-- III -->
+	<MechanicalObject name="Line4" template="Vec3d" position="-10 0.1 -0.1  1 0.1 -0.1" free_position="-1 0.1 -0.1  1 0.1 -0.1" />	<!-- IV -->
+	
+	<MechanicalObject name="Line5" template="Vec3d" position="-10 0 0.1  1 0 0.1" free_position="-1 0 -0.1  1 0 0.1" />	<!-- I-II -->
+	<MechanicalObject name="Line6" template="Vec3d" position="-10 0 -0.1  1 0 -0.1" free_position="-1 0 -0.1  1 0 -0.1" />	<!-- III-IV -->
+	
+	<MechanicalObject name="Line7" template="Vec3d" position="-10 0.1 0  1 0.1 0" free_position="-1 0.1 0  1 0.1 0" />	<!-- I-II -->
+	<MechanicalObject name="Line8" template="Vec3d" position="-10 -0.1 0  1 -0.1 0" free_position="-1 -0.1 0  1 -0.1 0" />	<!-- III-IV -->
+  </Node>
+  
+<!-- ///////////////////////   BEAM AS A TRUNK OF QUADRUPED ROBOT   /////////////////////////////////// -->
+  <Node name="Beam">
+      <EulerImplicitSolver rayleighStiffness="0" printLog="false" rayleighMass="0.1" />
+      <BTDLinearSolver template="BTDMatrix6d" printLog="false" verbose="false" />
+<!--      <SparseLUSolver printLog="0" verbose="0"/>  -->
+
+      <MechanicalObject template="Rigid3d" name="beam_DOFs" position="0 0 0 0 0 0 1   0.07329 0 0 0 0 0 1   0.14658 0 0 0 0 0 1   0.21987 0 0 0 0 0 1   0.29316 0 0 0 0 0 1   0.36645 0 0 0 0 0 1
+                                                                      0.43974 0 0 0 0 0 1   0.51303 0 0 0 0 0 1   0.58632 0 0 0 0 0 1   0.65961 0 0 0 0 0 1   0.7329 0 0 0 0 0 1"/>
+      <MeshTopology name="lines_Beam" lines="0 1 1 2 2 3 3 4 4 5 5 6 6 7 7 8 8 9 9 10"/>
+<!--     <FixedPlaneConstraint direction="0 1 0" dmin="-0.002" dmax="0.002" />  -->
+
+<!--     <FixedConstraint name="FixedConstraint" indices="0" />      -->  <!-- Commented to use the slider -->
+<!--     <UniformMass totalMass="0.0895" printLog="false" /> -->
+     <UniformMass vertexMass="0.00813 1 1 0 0 0 1 0 0 0 1" printLog="false" /> 
+     <BeamFEMForceField name="FEM" radius="0.00465" youngModulus="70000000000" poissonRatio="0.33"/>
+       
+<!--  <Monitor template="Rigid3d" name="Beam_Alone_Movement" listening="1" indices="10" showPositions="1" PositionsColor="1 1 0 1" ExportPositions="true"/>  -->
+ 
+     <UncoupledConstraintCorrection/>    <!-- FreeMotionAnimationLoop  -->
+
+     <Node name="VisualNode_beam">  <!-- check to modify it well with correspondances measument -->
+       <CubeTopology nx="10" ny="2" nz="2" min="0 -0.5 -0.003" max="10 0.5 0.003" />
+       <OglModel name="Visual" color="1 1 0 1.0" />
+       <BeamLinearMapping isMechanical="true"/>
+     </Node>
+      
+     <Node name="ConstraintPoint_Beam_HipMass">		<!-- This constraint creates a point to joint the Hip mass -->
+         <MechanicalObject name="point_beam" template="Vec3d" position="0 0 0" />
+         <RigidMapping index="10"/>
+     </Node>
+     
+     <Node name="ConstraintPoint_Line01">
+            <MechanicalObject name="points" template="Vec3d" position="0 0.1 0.1" />
+            <RigidMapping />
+     </Node>     
+     <Node name="ConstraintPoint_Line02">
+            <MechanicalObject name="points" template="Vec3d" position="0 -0.1 0.1" />
+            <RigidMapping />
+     </Node>     
+     <Node name="ConstraintPoint_Line03">
+            <MechanicalObject name="points" template="Vec3d" position="0 -0.1 -0.1" />
+            <RigidMapping />
+     </Node>     
+     <Node name="ConstraintPoint_Line04">
+            <MechanicalObject name="points" template="Vec3d" position="0 0.1 -0.1" />
+            <RigidMapping />
+     </Node>     
+     <Node name="ConstraintPoint_Line05">
+            <MechanicalObject name="points" template="Vec3d" position="0 0 0.1" />
+            <RigidMapping />
+     </Node>     
+     <Node name="ConstraintPoint_Line06">
+            <MechanicalObject name="points" template="Vec3d" position="0 0 -0.1" />
+            <RigidMapping />
+     </Node> 
+     <Node name="ConstraintPoint_Line07">
+            <MechanicalObject name="points" template="Vec3d" position="0 0.1 0" />
+            <RigidMapping />
+     </Node>
+     <Node name="ConstraintPoint_Line08">
+            <MechanicalObject name="points" template="Vec3d" position="0 -0.1 0" />
+            <RigidMapping />
+     </Node>  
+     
+     <Node name="ConstraintPoint_Line11">
+            <MechanicalObject name="points" template="Vec3d" position="0.05 0.1 0.1" />
+            <RigidMapping />
+     </Node>     
+     <Node name="ConstraintPoint_Line12">
+            <MechanicalObject name="points" template="Vec3d" position="0.05 -0.1 0.1" />
+            <RigidMapping />
+     </Node>     
+     <Node name="ConstraintPoint_Line13">
+            <MechanicalObject name="points" template="Vec3d" position="0.05 -0.1 -0.1" />
+            <RigidMapping />
+     </Node>     
+     <Node name="ConstraintPoint_Line14">
+            <MechanicalObject name="points" template="Vec3d" position="0.05 0.1 -0.1" />
+            <RigidMapping />
+     </Node>     
+     <Node name="ConstraintPoint_Line15">
+            <MechanicalObject name="points" template="Vec3d" position="0.05 0 0.1" />
+            <RigidMapping />
+     </Node>     
+     <Node name="ConstraintPoint_Line16">
+            <MechanicalObject name="points" template="Vec3d" position="0.05 0 -0.1" />
+            <RigidMapping />
+     </Node>
+     <Node name="ConstraintPoint_Line17">
+            <MechanicalObject name="points" template="Vec3d" position="0.05 0.1 0" />
+            <RigidMapping />
+     </Node>
+     <Node name="ConstraintPoint_Line18">
+            <MechanicalObject name="points" template="Vec3d" position="0.05 -0.1 0" />
+            <RigidMapping />
+     </Node>  
+     
+  </Node> 
+   <SlidingConstraint name="Constraint01" object1="@Beam/ConstraintPoint_Line01" object2="@SliderConstraints/Line1" sliding_point="0" axis_1="0" axis_2="1" />
+   <SlidingConstraint name="Constraint11" object1="@Beam/ConstraintPoint_Line11" object2="@SliderConstraints/Line1" sliding_point="0" axis_1="0" axis_2="1" />
+   
+   <SlidingConstraint name="Constraint02" object1="@Beam/ConstraintPoint_Line02" object2="@SliderConstraints/Line2" sliding_point="0" axis_1="0" axis_2="1" />
+   <SlidingConstraint name="Constraint03" object1="@Beam/ConstraintPoint_Line03" object2="@SliderConstraints/Line3" sliding_point="0" axis_1="0" axis_2="1" />    
+   <SlidingConstraint name="Constraint04" object1="@Beam/ConstraintPoint_Line04" object2="@SliderConstraints/Line4" sliding_point="0" axis_1="0" axis_2="1" /> 
+ 
+   <SlidingConstraint name="Constraint05" object1="@Beam/ConstraintPoint_Line05" object2="@SliderConstraints/Line5" sliding_point="0" axis_1="0" axis_2="1" />
+   <SlidingConstraint name="Constraint06" object1="@Beam/ConstraintPoint_Line06" object2="@SliderConstraints/Line6" sliding_point="0" axis_1="0" axis_2="1" />
+   
+   <SlidingConstraint name="Constraint07" object1="@Beam/ConstraintPoint_Line07" object2="@SliderConstraints/Line7" sliding_point="0" axis_1="0" axis_2="1" />
+   <SlidingConstraint name="Constraint08" object1="@Beam/ConstraintPoint_Line08" object2="@SliderConstraints/Line8" sliding_point="0" axis_1="0" axis_2="1" />    
+   
+   
+   <SlidingConstraint name="Constraint12" object1="@Beam/ConstraintPoint_Line12" object2="@SliderConstraints/Line2" sliding_point="0" axis_1="0" axis_2="1" />
+   <SlidingConstraint name="Constraint13" object1="@Beam/ConstraintPoint_Line13" object2="@SliderConstraints/Line3" sliding_point="0" axis_1="0" axis_2="1" />    
+   <SlidingConstraint name="Constraint14" object1="@Beam/ConstraintPoint_Line14" object2="@SliderConstraints/Line4" sliding_point="0" axis_1="0" axis_2="1" /> 
+ 
+   <SlidingConstraint name="Constraint15" object1="@Beam/ConstraintPoint_Line15" object2="@SliderConstraints/Line5" sliding_point="0" axis_1="0" axis_2="1" />
+   <SlidingConstraint name="Constraint16" object1="@Beam/ConstraintPoint_Line16" object2="@SliderConstraints/Line6" sliding_point="0" axis_1="0" axis_2="1" />
+   
+   <SlidingConstraint name="Constraint17" object1="@Beam/ConstraintPoint_Line17" object2="@SliderConstraints/Line7" sliding_point="0" axis_1="0" axis_2="1" />
+   <SlidingConstraint name="Constraint18" object1="@Beam/ConstraintPoint_Line18" object2="@SliderConstraints/Line8" sliding_point="0" axis_1="0" axis_2="1" />  
+  <!-- ///////////////////////   HIP MASS   /////////////////////////////////// -->
+  
+  <Node name="Mass_Hip">  
+  
+    <EulerImplicitSolver rayleighStiffness="0" printLog="false"  rayleighMass="0.1" />
+    <CGLinearSolver iterations="5" tolerance="1e-15" threshold="1e-15"/> <!-- <SparseLUSolver printLog="0" verbose="0"/> -->
+    <!--<MinResLinearSolver iterations="1000" tolerance="1e-9" printLog="1" verbose="0"/>-->
+    <MechanicalObject template="Rigid3d" name="Hip_Mass"  position="0.7329 0 0 0.707107 0 -0.707107 0"/>
+    <UniformMass name="MassSolid1" totalMass="0.58" />
+    <UncoupledConstraintCorrection />
+   
+    <Node name="ConstraintPoint_Hip_Mass">  <!-- This constraint creates a point to joint the trunk -->
+         <MechanicalObject name="point_Hip" template="Vec3d" position="0 0 0" />
+         <RigidMapping index="0"/>
+    </Node>
+
+  </Node>
+
+  <BilateralInteractionConstraint template="Vec3d" object1="@Beam/ConstraintPoint_Beam_HipMass/point_beam" object2="@Mass_Hip/ConstraintPoint_Hip_Mass/point_Hip" first_point="0" second_point="0" /> 
+  
+  <!-- ///////////////////////   FEMUR   /////////////////////////////////// -->
+  <Node name="Femur" gravity="0 0 -9.81">
+        <EulerImplicitSolver name="Implicit Euler Solver"  rayleighStiffness="0.1" rayleighMass="0.1" />
+        <CGLinearSolver iterations="5" tolerance="1e-30" threshold="1e-30"/> <!-- <SparseLUSolver printLog="0" verbose="0"/> -->
+        <MechanicalObject template="Rigid3d" />  
+<!--  	<UniformMass template="Rigid3d,RigidMass<3u,double>"  totalMass="0.05" />   -->
+    	
+<!-- 	<BeamFEMForceField name="FEM" radius="0.00465" youngModulus="70000000000" poissonRatio="0.33" />  -->
+<!--    <PartialFixedConstraint fixedDirections="0 1 0 0 0 0" /> -->
+<!--    <OscillatorConstraint name="OscillatingConstraint" oscillators="0 0.7329 0 -0.2645 100 0 0 5 0" />  -->
+<!-- 	<ConstantForceField indices="0" forces="0 0 0 0 7.5 0" showArrowSize="0.5" printLog="true"/>  -->
+	<UncoupledConstraintCorrection />
+
+	<Node name="Femur_Nodes" gravity="0 0 -9.81">
+		<MechanicalObject template="Rigid3d" name="DOFs2" position="0.7329 0 0 0.707107 0 -0.707107 0  0.7329 0 -0.2645 0.707107 0 -0.707107 0" />
+		<RigidRigidMapping name="angle-coord mapping" input="@.." output="@DOFs2" index="0" />
+<!--		<ConstantForceField indices="0" forces="0 0 0 0 -0.9 0" showArrowSize="0.5" printLog="true"/>		-->
+		
+		<Node name="ConstraintPoint_Femur_HipMass">	<!-- This constraint creates a point to joint the Hip Mass -->
+            		<MechanicalObject name="point_Hip" template="Vec3d" position="0 0 0" />
+            		<RigidMapping index="0"/>
+        	</Node>
+        
+        	<Node name="ConstraintPoint_Femur_KneeMass">	<!-- This constraint creates a point to joint the Knee Mass -->
+            		<MechanicalObject name="point_Hip" template="Vec3d" position="0 0 0" />
+            		<RigidMapping index="1"/>
+        	</Node>
+       </Node>
+       
+       <Node name="Visual_Femur">
+            <MeshObjLoader name="meshLoader" filename="/home/eaparra/My-Sofa/src21/examples/CodeFiles/Example_Beam/mesh/Pata1_v1.obj" handleSeams="1" scale3d="0.001 0.001 0.001" rotation="-90 0 90" translation="0 -0.02 0" />
+            <OglModel name="Visual" src="@meshLoader" color="1 1 0 0.7" />
+            <RigidMapping input="@Femur_Nodes/DOFs2" output="@Visual" />
+        </Node>
+  </Node>   
+  
+  <BilateralInteractionConstraint template="Vec3d" object1="@Mass_Hip/ConstraintPoint_Hip_Mass/point_Hip" object2="@Femur/Femur_Nodes/ConstraintPoint_Femur_HipMass/point_Hip" first_point="0" second_point="0" />
+ 
+   <!-- ///////////////////////   KNEE MASS   /////////////////////////////////// -->
+   <Node name="Mass_Knee">  
+  
+    <EulerImplicitSolver rayleighStiffness="0" printLog="false"  rayleighMass="0.1" />
+    <CGLinearSolver iterations="5" tolerance="1e-3 0" threshold="1e-30"/> <!-- <SparseLUSolver printLog="0" verbose="0"/> -->
+    <!--<MinResLinearSolver iterations="1000" tolerance="1e-9" printLog="1" verbose="0"/>-->
+    <MechanicalObject template="Rigid3d" name="Hip_Mass"  position="0.7329 0 -0.2645 0.707107 0 -0.707107 0"/>
+    <UniformMass name="MassSolid1" totalMass="0.58" />
+    <UncoupledConstraintCorrection />
+   
+    <Node name="ConstraintPoint_Knee_Mass">  <!-- This constraint creates a point to joint the trunk -->
+         <MechanicalObject name="points_Knee_Mass" template="Vec3d" position="0 0 0" />
+         <RigidMapping index="0"/>
+    </Node> 
+
+  </Node>    
+      
+  <BilateralInteractionConstraint template="Vec3d" object1="@Femur/Femur_Nodes/ConstraintPoint_Femur_KneeMass/point_Hip" object2="@Mass_Knee/ConstraintPoint_Knee_Mass/points_Knee_Mass" first_point="0" second_point="0" />     
+    
+    <!-- ///////////////////////   TIBIA   /////////////////////////////////// -->
+    <Node name="Tibia" gravity="0 0 -9.81">
+        <EulerImplicitSolver name="Implicit Euler Solver"  rayleighStiffness="0.1" rayleighMass="0.1" />
+        <CGLinearSolver iterations="5" tolerance="1e-30" threshold="1e-30"/> <!-- <SparseLUSolver printLog="0" verbose="0"/> -->
+        <MechanicalObject template="Rigid3d" />  
+  	<UniformMass template="Rigid3d,RigidMass<3u,double>"  totalMass="0.05" />  
+    	
+<!-- 	<BeamFEMForceField name="FEM" radius="0.00465" youngModulus="70000000000" poissonRatio="0.33" />  -->
+<!--    <PartialFixedConstraint fixedDirections="0 1 0 0 0 0" /> -->
+<!--    <OscillatorConstraint name="OscillatingConstraint" oscillators="0 0.7329 0 -0.2645 100 0 0 5 0" />  -->
+ <!--	<ConstantForceField indices="0" forces="0 0 0 0 -0.1 0" showArrowSize="0.5" printLog="true"/>  -->
+	<UncoupledConstraintCorrection />
+
+	<Node name="Tibia_Nodes" gravity="0 0 -9.81">
+		<MechanicalObject template="Rigid3d" name="DOFs2" position="0.7329 0 -0.2645 0.707107 0 -0.707107 0   0.7329 0 -0.53857 0.707107 0 -0.707107 0" />
+		<RigidRigidMapping name="angle-coord mapping" input="@.." output="@DOFs2" index="0" />
+<!--		<ConstantForceField indices="0" forces="0 0 0 0 -1.1 0" showArrowSize="0.5" printLog="true"/>	-->
+
+		<Node name="Constraint_TibiaPlane">
+		       <MechanicalObject name="points_Knee_1" template="Vec3d" position="0.1 0.1 0.1  -0.1 0.1 0.1  0.1 0.1 -0.1  -0.1 0.1 -0.1  0.1 -0.1 0.1  -0.1 -0.1 0.1  0.1 -0.1 -0.1  -0.1 -0.1 -0.1" />
+            		<RigidMapping index="0"/>
+            		<MeshTopology name="lines_Beam" edges="0 1 1 2 2 3 3 4 4 5 5 6 6 7"/>
+			<FixedPlaneConstraint direction="0 1 0" dmin="-4" dmax="4" />
+		</Node>
+		
+		<Node name="ConstraintPoint_Tibia_KneeMass">		<!-- This constraint creates a point to joint the Knee Mass -->
+            		<MechanicalObject name="points_Knee_1" template="Vec3d" position="0 0 0" />
+            		<RigidMapping index="0"/>
+        	</Node>
+        
+        	<Node name="ConstraintPoint_Tibia_Foot">		<!-- This constraint creates a point to joint the Foot -->
+            		<MechanicalObject name="points_Knee_2" template="Vec3d" position="0 0 0" />
+            		<RigidMapping index="1"/>
+        	</Node>
+        	
+        	<Node name="Collision_Foot">				<!-- This constraint a collition point in the Foot -->
+        		<MechanicalObject name="points_Foot_Collition" template="Vec3d" position="0 0 0" />        		
+        		<RigidMapping index="1"/>
+        		<MeshTopology name="lines_Beam" hexas="0"/>
+        		<MeshSpringForceField name="Springs Foot" stiffness="1500" damping="1" />
+            	 	<SphereCollisionModel name="Sphere"  radius="0.04" />
+        	</Node>        	
+     </Node>
+           
+     <Node name="Visual_Tibia">
+            <MeshObjLoader name="meshLoader" filename="/home/eaparra/My-Sofa/src21/examples/CodeFiles/Example_Beam/mesh/Pata1_v1.obj" handleSeams="1" scale3d="0.001 0.001 0.001" rotation="-90 0 90" translation="0 -0.02 0" />
+            <OglModel name="Visual" src="@meshLoader" color="1 1 0 0.7" />
+            <RigidMapping input="@Tibia_Nodes/DOFs2" output="@Visual" />
+     </Node>
+     
+  </Node>   
+  
+   <BilateralInteractionConstraint template="Vec3d" object1="@Mass_Knee/ConstraintPoint_Knee_Mass/points_Knee_Mass" object2="@Tibia/Tibia_Nodes/ConstraintPoint_Tibia_KneeMass/points_Knee_1" first_point="0" second_point="0" />   
+       
+    <Node name="Floor">
+	<MeshTopology name="Topology Floor" filename="mesh/floor.obj" />
+	<MechanicalObject name="Particles Floor" rotation="90 0 0" translation="0.7329 0 -0.62" scale3d="0.1 0.005 0.005"/>
+	<TriangleCollisionModel name="Triangle For Collision Floor" moving="0" simulated="0" />	
+	<LineCollisionModel name="Lines For Collision" moving="0" simulated="0" />
+        <PointCollisionModel name="Points For Collision" moving="0" simulated="0" />    
+   </Node> 
+	   	             
+</Node>
+
+
+
+
+
+
+
+
+
+
