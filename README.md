@@ -41,3 +41,4 @@ This simulation allowins the movement like walk, trot or gallop.
 <img src="images/Legged%20Robot.png" width="600">
 
 ##
+
