@@ -19,7 +19,7 @@
   
   <VisualStyle displayFlags="showForceFields showCollisionModels showWireframe showMapping" />
 
-  <OglGrid size="100" name="grid"/>
+  <OglGrid size="1" name="grid"/>
   <OglLineAxis size="@grid.size"/>
   <OglSceneFrame/>
   
@@ -73,6 +73,12 @@
     <MechanicalObject template="Rigid3d" name="Hip_Mass"  position="0.7329 0 0 0.707107 0 -0.707107 0"/>
     <UniformMass name="MassSolid1" totalMass="0.58" />
     <UncoupledConstraintCorrection />
+
+    <Node name="Visual_Mass">
+    	    <MeshObjLoader name="meshLoader" filename="mesh/sphere.obj" handleSeams="1" scale3d="0.025 0.025 0.025"  translation="0 0 0" />
+            <OglModel name="Visual" src="@meshLoader" color="0.6 0.5 0.5 1" />
+            <RigidMapping input="@.." output="@Visual" />
+    </Node>
    
     <Node name="ConstraintPoint_Hip_Mass">  <!-- This constraint creates a point to joint the trunk -->
          <MechanicalObject name="points_Hip_1" template="Vec3d" position="0 0 0" />
@@ -99,6 +105,12 @@
 		<MechanicalObject template="Rigid3d" name="DOFs2" position="0.7329 0 0 0.707107 0 -0.707107 0  0.7329 0 -0.2645 0.707107 0 -0.707107 0" />
 		<RigidRigidMapping name="angle-coord mapping" input="@.." output="@DOFs2" index="0" />
 <!--		<ConstantForceField indices="0" forces="0 0 0 0 -1.1 0" showArrowSize="0.5" printLog="true"/>		-->
+
+       <Node name="Visual">
+       	<CubeTopology nx="2" ny="2" nz="2" min="0 -0.1 -0.003" max="1 0.1 0.003" />
+       	<OglModel name="Visual" color="1 1 0 1.0" />
+       	<BeamLinearMapping isMechanical="true"/>
+       </Node>
 		
 		<Node name="ConstraintPoint_Hip_Femur">
             		<MechanicalObject name="points_Hip" template="Vec3d" position="0 0 0" />
@@ -122,6 +134,12 @@
     <MechanicalObject template="Rigid3d" name="Hip_Mass"  position="0.7329 0 -0.2645 0.707107 0 -0.707107 0"/>
     <UniformMass name="MassSolid1" totalMass="0.58" />
     <UncoupledConstraintCorrection />
+    
+    <Node name="Visual_Mass">
+    	    <MeshObjLoader name="meshLoader" filename="mesh/sphere.obj" handleSeams="1" scale3d="0.025 0.025 0.025"  translation="0 0 0" />
+            <OglModel name="Visual" src="@meshLoader" color="0.6 0.5 0.5 1" />
+            <RigidMapping input="@.." output="@Visual" />
+    </Node>
    
     <Node name="ConstraintPoint_Hip_Mass">  <!-- This constraint creates a point to joint the trunk -->
          <MechanicalObject name="points_Knee_1" template="Vec3d" position="0 0 0" />
