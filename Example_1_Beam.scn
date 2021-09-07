@@ -1,7 +1,7 @@
 <!-- BeamFEMForceField Example_1_Beam -->
 <!-- The units of the .scn are meters for length and kg for masses -->
 
-<Node name="root" gravity="0 0 -9.81" dt="0.0004">
+<Node name="root" gravity="0 0 -9.81" dt="0.001">
 
   <RequiredPlugin pluginName="SofaOpenglVisual"/>
   <RequiredPlugin pluginName='SofaMiscMapping'/> 
@@ -48,7 +48,7 @@
      <UniformMass vertexMass="0.00813 1 1 0 0 0 1 0 0 0 1" printLog="false" /> 
      <BeamFEMForceField name="FEM" radius="0.00465" youngModulus="70000000000" poissonRatio="0.33"/>
       
-     <Monitor template="Rigid3d" name="Beam_Alone_Movement" listening="1" indices="10" showPositions="1" PositionsColor="1 1 0 1" ExportPositions="true"/>
+<!-- <Monitor template="Rigid3d" name="Beam_Alone_Movement" listening="1" indices="10" showPositions="1" PositionsColor="1 1 0 1" ExportPositions="true"/>  -->
  
      <UncoupledConstraintCorrection/>    <!-- FreeMotionAnimationLoop  -->
 
@@ -74,12 +74,18 @@
     <MechanicalObject template="Rigid3d" name="Hip_Mass"  position="0.7329 0 0 0.707107 0 -0.707107 0"/>
     <UniformMass name="MassSolid1" totalMass="0.58" />
     <UncoupledConstraintCorrection />
+    
+    <Node name="Visual_Mass">
+    	    <MeshObjLoader name="meshLoader" filename="mesh/sphere.obj" handleSeams="1" scale3d="0.025 0.025 0.025"  translation="0 0 0" />
+            <OglModel name="Visual" src="@meshLoader" color="0.6 0.5 0.5 1" />
+            <RigidMapping input="@.." output="@Visual" />
+    </Node>
    
     <Node name="ConstraintPoint_Hip_2">  <!-- This constraint creates a point to joint the trunk -->
          <MechanicalObject name="points_Hip_1" template="Vec3d" position="0 0 0" />
          <RigidMapping index="0"/>
     </Node>
-
+    
   </Node>
    
       <BilateralInteractionConstraint template="Vec3d" object1="@Beam/ConstraintPoint_beam_2/points_beam" object2="@Mass/ConstraintPoint_Hip_2/points_Hip_1" first_point="0" second_point="0" />  
