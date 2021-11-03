@@ -4,7 +4,7 @@
 <Node name="root" gravity="0 0 -9.81" dt="0.001">
 
   <RequiredPlugin pluginName="SofaOpenglVisual"/>
-  <RequiredPlugin pluginName='SofaMiscMapping'/> 
+  <RequiredPlugin pluginName='SofaMiscMapping'/>
   <RequiredPlugin pluginName='SofaGeneralLinearSolver'/>
   <RequiredPlugin pluginName='SofaGeneralTopology'/>
   <RequiredPlugin pluginName='SofaImplicitOdeSolver'/>
@@ -15,20 +15,20 @@
   <RequiredPlugin pluginName='SofaRigid'/>
   <RequiredPlugin pluginName='SofaConstraint'/>
   <RequiredPlugin pluginName='SofaLoader'/>
-  
+
   <VisualStyle displayFlags="showForceFields showCollisionModels showWireframe showMapping" />
 
   <OglGrid size="1" name="grid"/>
   <OglLineAxis size="@grid.size"/>
   <OglSceneFrame/>
-  
+
   <FreeMotionAnimationLoop />
-  <GenericConstraintSolver tolerance="0.01" maxIterations="1000"/>		<!-- <LCPConstraintSolver tolerance="0.001" maxIt="1000"/> -->
-  
+  <GenericConstraintSolver tolerance="1e-8" maxIterations="1000"/>		<!-- <LCPConstraintSolver tolerance="0.001" maxIt="1000"/> -->
+
   <DefaultPipeline depth="6" verbose="0" draw="0" />
   <BruteForceBroadPhase/>
   <BVHNarrowPhase/>
-  
+
   <MinProximityIntersection name="Proximity" alarmDistance="0.3" contactDistance="0.2" />
   <DefaultContactManager name="Response" response="default" />
 
@@ -43,13 +43,13 @@
       <MeshTopology name="lines" lines="0 1 1 2 2 3 3 4 4 5 5 6 6 7 7 8 8 9 9 10"/>
 <!--     <FixedPlaneConstraint direction="0 1 0" dmin="-0.002" dmax="0.002" />  -->
 
-     <FixedConstraint name="FixedConstraint" indices="0" />      
+     <FixedConstraint name="FixedConstraint" indices="0" />
 <!--     <UniformMass totalMass="0.0895" printLog="false" /> -->
-     <UniformMass vertexMass="0.00813 1 1 0 0 0 1 0 0 0 1" printLog="false" /> 
+     <UniformMass vertexMass="0.00813 1 1 0 0 0 1 0 0 0 1" printLog="false" />
      <BeamFEMForceField name="FEM" radius="0.00465" youngModulus="70000000000" poissonRatio="0.33"/>
-      
-<!-- <Monitor template="Rigid3d" name="Beam_Alone_Movement" listening="1" indices="10" showPositions="1" PositionsColor="1 1 0 1" ExportPositions="true"/>  -->
- 
+
+     <!-- <Monitor template="Rigid3d" name="Beam_Alone_Movement_Point_10" listening="1" indices="10" showPositions="1" PositionsColor="1 1 0 1" ExportPositions="true"/> -->
+
      <UncoupledConstraintCorrection/>    <!-- FreeMotionAnimationLoop  -->
 
      <Node name="VisualNode_beam">  <!-- check to modify it well with correspondances measument -->
@@ -57,37 +57,37 @@
        <OglModel name="Visual" color="1 1 0 1.0" />
        <BeamLinearMapping isMechanical="true"/>
      </Node>
-      
+
      <Node name="ConstraintPoint_beam_2">		<!-- This constraint creates a point to joint the Hip mass -->
          <MechanicalObject name="points_beam" template="Vec3d" position="0 0 0" />
          <RigidMapping index="10"/>
      </Node>
   </Node>
-  
-  
-  
-  <Node name="Mass">  
-  
+
+
+
+  <Node name="Mass">
+
     <EulerImplicitSolver rayleighStiffness="0" printLog="false"  rayleighMass="0.1" />
     <SparseLUSolver printLog="0" verbose="0"/>
     <!--<MinResLinearSolver iterations="1000" tolerance="1e-9" printLog="1" verbose="0"/>-->
     <MechanicalObject template="Rigid3d" name="Hip_Mass"  position="0.7329 0 0 0.707107 0 -0.707107 0"/>
     <UniformMass name="MassSolid1" totalMass="0.58" />
     <UncoupledConstraintCorrection />
-    
+
     <Node name="Visual_Mass">
     	    <MeshObjLoader name="meshLoader" filename="mesh/sphere.obj" handleSeams="1" scale3d="0.025 0.025 0.025"  translation="0 0 0" />
             <OglModel name="Visual" src="@meshLoader" color="0.6 0.5 0.5 1" />
             <RigidMapping input="@.." output="@Visual" />
     </Node>
-   
+
     <Node name="ConstraintPoint_Hip_2">  <!-- This constraint creates a point to joint the trunk -->
          <MechanicalObject name="points_Hip_1" template="Vec3d" position="0 0 0" />
          <RigidMapping index="0"/>
     </Node>
-    
+
   </Node>
-   
-      <BilateralInteractionConstraint template="Vec3d" object1="@Beam/ConstraintPoint_beam_2/points_beam" object2="@Mass/ConstraintPoint_Hip_2/points_Hip_1" first_point="0" second_point="0" />  
-  
+
+      <BilateralInteractionConstraint template="Vec3d" object1="@Beam/ConstraintPoint_beam_2/points_beam" object2="@Mass/ConstraintPoint_Hip_2/points_Hip_1" first_point="0" second_point="0" />
+
 </Node>
